@@ -2,6 +2,8 @@
 import pandas as pd
 import datetime
 
+feature_names = ["ID", "Source", "TMC", "Start_Time", "End_Time", "Start_Lat", "Start_Lng", "Distance(mi)", "Description", "Street", "Side", "City", "County", "State", "Country", "Timezone", "Airport_Code", "Weather_Timestamp", "Temperature(F)", "Wind_Chill(F)", "Humidity(%)", "Pressure(in)", "Visibility(mi)", "Wind_Direction", "Wind_Speed(mph)", "Precipitation(in)", "Weather_Condition", "Amenity", "Bump", "Crossing", "Give_Way", "Junction", "No_Exit", "Railway", "Roundabout", "Station", "Stop", "Traffic_Calming", "Traffic_Signal", "Turning_Loop", "Sunrise_Sunset", "Civil_Twilight", "Nautical_Twilight", "Astronomical_Twilight", "A00100", "A00700", "minimum_age", "maximum_age", "gender"]
+
 # Create the dataframe
 
 df = pd.read_csv("US_Accidents_June20.csv")
@@ -12,21 +14,26 @@ def fix_zip(zip):
             fixed = int(zip.split('-')[0])
         else: 
             fixed = int(zip)
-        return fixed
+        return str(fixed)
     else: 
         return None 
 
+def fix_others(feature): 
+    if None: 
+        return feature
+    else:
+        return str(feature)
 
-df['Zipcode'].map(fix_zip)
+
+df['Zipcode'] = df['Zipcode'].map(fix_zip)
 
 df.Start_Time = df['Start_Time'].astype('string')
 df = df[df['Start_Time'].str.contains("2018|2019|2020")]
 
-print(df)
 df.Zipcode = df['Zipcode'].astype('string')
-print(df['Zipcode'])
-
-# income_df = pd.read_csv("income_data_small.csv")
+df = df.drop(columns=['Number'])
+df = df.drop(columns=['End_Lat'])
+df = df.drop(columns=['End_Lng'])
 
 #####
 def pop_row_to_demo(row):
@@ -61,13 +68,7 @@ def get_pop_by_zip(filename):
     popDfIn.pop('population')
     popDfIn = popDfIn.rename(columns={'zipcode': 'Zipcode'})
     popDfIn.Zipcode = popDfIn['Zipcode'].astype('string')
-    print("here??")
-    print(popDfIn)
-    print(popDfIn['Zipcode'])
-    #popDfIn = popDfIn[~popDfIn.index.duplicated(keep='first')]
     popDfIn = popDfIn.drop_duplicates(subset="Zipcode", keep="first")
-    print("222\n\n\n\n\n")
-    print(popDfIn)
     return popDfIn
 
 def aggregate_income_data(columns, filename="14zpallagi.csv"): 
@@ -77,9 +78,6 @@ def aggregate_income_data(columns, filename="14zpallagi.csv"):
     income_df = income_df.rename(columns={'zipcode': 'Zipcode'})
     income_df.Zipcode = income_df['Zipcode'].astype('string')
 
-    print("**** \n\n\n")
-    print(income_df.groupby("Zipcode").mean())
-
     return income_df.groupby("Zipcode").mean()
 
 popByZip = get_pop_by_zip("population_by_zip_2010.csv")
@@ -88,65 +86,40 @@ columns = ["zipcode", "A00100", "A00700"]
 income_df = aggregate_income_data(columns)
 
 income_df.index.rename("Zipcode", inplace=True)
-print(popByZip['Zipcode'])
-
 df = df.set_index('Zipcode')
-print(df)
-
 df = df.join(income_df, on="Zipcode")
 
 popByZip = popByZip.set_index('Zipcode')
-print(popByZip)
-print(income_df)
-# print(df)
 df = df.join(popByZip, on="Zipcode")
-# df = df[~df.index.duplicated(keep='first')]
-# df = df.merge(popByZip)
-# df = df.join(popByZip)
-print(df)
 
-df.to_csv('full_data_final.csv')
+# eliminate nan's 
+for feature in feature_names: 
+    df = df[pd.notnull(df[feature])]
 
+''' begin k-fold validation technique '''
+#1 shuffle dataset randomly
 
+df = df.sample(frac=1)
 
+#2 split into 10 groups of equal size
+length = len(df.index)
+group_size = int(length/10)
+prev = 0
 
+#3 use 8 of these groups for training, 1 for testing, and 1 for validation
+# write directly to their respective files 
 
+end = group_size * 8
+newdf = df.iloc[prev:end]
+prev = end + 1
+newdf.to_csv('training_data_10_25.csv')
 
+end = 9 * group_size
+newdf = df.iloc[prev:end]
+prev = end + 1
+newdf.to_csv('testing_data_10_25.csv')
 
-
-
-
-
-
-
-''' OLD CODE ''' 
-
-# for row in df.itertuples():
-#     # print(df['Zipcode'])
-#     # print(iter)
-#     if '-' in row[19]:      # zipcode
-#         # df[row['Zipcode']] = row['Zipcode'].split('-')[0]
-#         #df[df.Zipcode] = row['Zipcode'].split('-')[0]
-#         #df[df.Zipcode == row['Zipcode']]['Zipcode'] = int(row['Zipcode'].split('-')[0])
-#         #    income_df = income_df[income_df.zipcode != 0]
-#         #df.iloc[iter, 17] = int(row['Zipcode'].split('-')[0])
-#         df.replace(row[19], int(row[19].split('-')[0]), inplace=True)
-#         # df = df.map(lambda x: )
-#     else: 
-#         df.replace(row[19], int(row[19]), inplace=True)
-#     print(row[5])
-#     time = row[5]
-
-''' from pop function ''' 
-
-    # demographics = list(sorted(demographics))
-    # zips = list(sorted(set(popDfIn['zipcode'])))
-
-    # popDfOut = pd.DataFrame(columns=['zip'] + demographics, index=zips)
-    # print("created df")
-    # for iter, row in popDfIn.iterrows():
-    #     demo = pop_row_to_demo(row)
-    #     zipcode = row['zipcode']
-    #     popDfOut.at[zipcode, demo] = row['population'] 
-    #     popDfOut.at[zipcode, 'zip'] = zipcode 
-    # return popDfOut
+end = 10 * group_size
+newdf = df.iloc[prev:end]
+prev = end + 1
+newdf.to_csv('validation_data_10_25.csv')
