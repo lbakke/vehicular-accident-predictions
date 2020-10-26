@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # compile_data.py - assemble the dataset 
 import pandas as pd
 import datetime
@@ -96,30 +98,33 @@ df = df.join(popByZip, on="Zipcode")
 for feature in feature_names: 
     df = df[pd.notnull(df[feature])]
 
-''' begin k-fold validation technique '''
-#1 shuffle dataset randomly
+#FIXME: add df.to_csv -> full_data_10_25.csv
 
-df = df.sample(frac=1)
+# ''' begin k-fold validation technique '''
+# #1 shuffle dataset randomly
+# df = df.sample(frac=1)
 
-#2 split into 10 groups of equal size
-length = len(df.index)
-group_size = int(length/10)
-prev = 0
+# #2 split into 10 groups of equal size
+# length = len(df.index)
+# group_size = int(length/10)
+# prev = 0
 
-#3 use 8 of these groups for training, 1 for testing, and 1 for validation
-# write directly to their respective files 
+# #3 use 8 of these groups for training, 1 for testing, and 1 for validation
+# # write directly to their respective files 
 
-end = group_size * 8
-newdf = df.iloc[prev:end]
-prev = end + 1
-newdf.to_csv('training_data_10_25.csv')
+# # try 70% training and 30% testing
 
-end = 9 * group_size
-newdf = df.iloc[prev:end]
-prev = end + 1
-newdf.to_csv('testing_data_10_25.csv')
+# end = group_size * 8
+# newdf = df.iloc[prev:end]
+# prev = end + 1
+# newdf.to_csv('training_data_10_25.csv')
 
-end = 10 * group_size
-newdf = df.iloc[prev:end]
-prev = end + 1
-newdf.to_csv('validation_data_10_25.csv')
+# end = 9 * group_size
+# newdf = df.iloc[prev:end]
+# prev = end + 1
+# newdf.to_csv('testing_data_10_25.csv')
+
+# end = 10 * group_size
+# newdf = df.iloc[prev:end]
+# prev = end + 1
+# newdf.to_csv('validation_data_10_25.csv')
