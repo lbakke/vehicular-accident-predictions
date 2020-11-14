@@ -8,8 +8,10 @@
  - Lauren Bakke (lbakke)
  - Molly Zachlin (mzachlin)
 
+### To Replicate Results in Final Paper: 
+First run 'generate_models.ipynb' to get model results, then run 'tune_hyperparameters.ipynb' to tune hyperparameters.
  
-# Using income tax dataset
+### Using income tax dataset
 ZIPCODE: zip
 AGI_STUB: size of adjusted gross income, ranked from 1-6 
     1 = $1 under $25,000
