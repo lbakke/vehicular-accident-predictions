@@ -9,7 +9,7 @@
  - Molly Zachlin (mzachlin)
 
 ### To Replicate Results in Final Paper: 
-First run 'generate_models.ipynb' to get model results, then run 'tune_hyperparameters.ipynb' to tune hyperparameters.
+First run 'generate_models.ipynb' to get model results, then run 'tune_hyperparameters.ipynb' to tune hyperparameters. Datasets were too big to add on github but dm for copies if needed.
  
 ### Using income tax dataset
 ZIPCODE: zip
